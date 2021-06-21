@@ -4,18 +4,19 @@ import {
   IsLongitude,
   IsNotEmpty,
   IsOptional,
-  Length,
 } from 'class-validator';
 
 export class CreateStoreDto {
   @ApiProperty({ description: '사업자번호' })
   @IsNotEmpty()
-  // @Length(10, 10)
   bnum: string;
 
   @ApiProperty({ description: '상호명' })
   @IsNotEmpty()
   name: string;
+
+  @IsNotEmpty()
+  password: string;
 
   @ApiProperty({ description: '도로명 주소' })
   @IsNotEmpty()

@@ -83,12 +83,10 @@ export class AuthsService {
       const { platform_type, platform_key, message_token } = dto;
       const getAuthDto: GetAuthDto = { platform_type, platform_key };
       const auth = await this.get(getAuthDto);
-      console.log(123, auth);
 
       // 데이터가 없을 시 추가
       if (!auth) {
         const createUserDto: CreateUserDto = { message_token };
-        console.log(77, createUserDto);
 
         const user = await this.usersRepository.create(createUserDto);
         await runner.manager.save(user);
@@ -98,7 +96,7 @@ export class AuthsService {
           platform_key,
           user,
         };
-        console.log(88, createUserDto);
+
         const auth = await this.authsRepository.create(createAuthDto);
         await runner.manager.save(auth);
 

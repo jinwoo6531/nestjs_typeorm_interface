@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AffectedRows } from '../common/interfaces/custom.interface';
@@ -10,6 +11,9 @@ import { StoreEntity } from './entities/store.entity';
 import { StoresRepository } from './stores.repository';
 import { Connection } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
+import { SigninStoreDto } from './dto/signin-store.dto';
+import { StoreSignIn } from './interfaces/signin.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class StoresService {
@@ -17,6 +21,7 @@ export class StoresService {
     @InjectRepository(StoresRepository)
     private readonly storesRepository: StoresRepository,
     private readonly connection: Connection,
+    private jwtService: JwtService,
   ) {}
 
   async findAll(): Promise<StoreEntity[]> {
@@ -63,27 +68,22 @@ export class StoresService {
       await runner.commitTransaction();
       return { rows: 1 };
     } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('에러입니다.');
-      } else {
-        throw new InternalServerErrorException();
-      }
       await runner.rollbackTransaction();
     } finally {
       await runner.release();
     }
+  }
 
-    // await this.storesRepository.insert({
-    //   bnum,
-    //   name,
-    //   road_address,
-    //   detail_address,
-    //   longitude,
-    //   latitude,
-    //   phone,
-    //   owner_name: '',
-    //   password: '',
-    //   salt: '',
-    // });
+  async signIn(dto: SigninStoreDto): Promise<StoreSignIn> {
+    const { name, password } = dto;
+    const store = await this.storesRepository.findOne({ name });
+
+    if (store && (await bcrypt.compare(password, store.password))) {
+      const payload = { name };
+      const access_token: string = await this.jwtService.sign(payload);
+      return { access_token, name: store.name };
+    } else {
+      throw new UnauthorizedException('Please check your login credentials');
+    }
   }
 }

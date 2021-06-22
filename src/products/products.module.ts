@@ -8,6 +8,7 @@ import { ProductsService } from './products.service';
 import { CategoriesRepository } from '../categories/categories.repository';
 import { ImagesRepository } from '../images/images.repository';
 import { ImagesService } from 'src/images/images.service';
+import { StoresModule } from 'src/stores/stores.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ImagesService } from 'src/images/images.service';
     TypeOrmModule.forFeature([ProductsRepository]),
     TypeOrmModule.forFeature([StoresRepository]),
     AuthsModule,
+    StoresModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService, ImagesService],

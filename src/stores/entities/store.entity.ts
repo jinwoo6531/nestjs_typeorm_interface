@@ -1,5 +1,12 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { ProductEntity } from 'src/products/entities/product.entity';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({ name: 'store' })
 export class StoreEntity extends BaseEntity {
@@ -39,15 +46,23 @@ export class StoreEntity extends BaseEntity {
   @Column('varchar', { name: 'phone', length: 50 })
   phone: string;
 
-  @Column('varchar', { name: 'password', length: 200, select: false })
+  @Column('varchar', { name: 'password', length: 200 })
   password: string;
 
   @Column('varchar', { name: 'salt', length: 128, select: false })
   salt: string;
 
+  @OneToMany((_type) => ProductEntity, (product) => product.store, {
+    eager: true,
+  })
+  products: ProductEntity[];
+
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP', select: false })
   created_at: Date;
 
-  @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', select: false })
+  @Column('timestamp', {
+    default: () => 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+    select: false,
+  })
   modified_at: Date;
 }

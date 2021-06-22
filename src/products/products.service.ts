@@ -10,6 +10,7 @@ import { StoresRepository } from '../stores/stores.repository';
 import { CreateProductDto } from './dto/create-product.dto';
 import { AffectedRows } from '../common/interfaces/custom.interface';
 import { GetProductsFilterDto } from './dto/get-products-filter.dto';
+import { StoreEntity } from 'src/stores/entities/store.entity';
 
 @Injectable()
 export class ProductsService {
@@ -27,10 +28,12 @@ export class ProductsService {
     const products = await this.productsRepository.find({
       relations: ['categories', 'store', 'thumbnails'],
       order: {
-        id: 'ASC'
-      }
+        id: 'ASC',
+      },
     });
-    products.forEach(product => product.categories.sort((a, b) => a.priority - b.priority));
+    products.forEach((product) =>
+      product.categories.sort((a, b) => a.priority - b.priority),
+    );
     return products;
   }
 
@@ -38,10 +41,12 @@ export class ProductsService {
     const products = await this.productsRepository.find({
       relations: ['categories', 'store', 'thumbnails'],
       order: {
-        id: 'ASC'
-      }
+        id: 'ASC',
+      },
     });
-    products.forEach(product => product.categories.sort((a, b) => a.priority - b.priority));
+    products.forEach((product) =>
+      product.categories.sort((a, b) => a.priority - b.priority),
+    );
     return products;
   }
 
@@ -55,7 +60,8 @@ export class ProductsService {
 
   async create(
     files: Array<Express.Multer.File>,
-    dto: CreateProductDto
+    dto: CreateProductDto,
+    store: StoreEntity,
   ): Promise<AffectedRows> {
     let thumbnails: ImageEntity[] = [];
 
@@ -65,10 +71,12 @@ export class ProductsService {
     try {
       let rows = 0;
 
-      const store = await this.storesRepository.findOne(dto.store_id);
-      const categories = await this.categoriesRepository.findByIds(dto.category_ids);
+      // const store = await this.storesRepository.findOne(dto.store_id);
+      const categories = await this.categoriesRepository.findByIds(
+        dto.category_ids,
+      );
       await runner.manager.save(categories);
-      
+
       for (const file of files) {
         const thumbnail = await this.imagesService.create('thumbnails', file);
         await runner.manager.save(thumbnail);
@@ -77,12 +85,12 @@ export class ProductsService {
 
       const product = await this.productsRepository.create({
         title: dto.title,
-        content: '',
+        content: dto.content,
         cost_price: 30000,
         sale_price: 27000,
         categories,
         store,
-        thumbnails
+        thumbnails,
       });
       await runner.manager.save(product);
 
@@ -90,12 +98,12 @@ export class ProductsService {
 
       await runner.commitTransaction();
       return { rows };
-
     } catch (err) {
       await runner.rollbackTransaction();
-      for (const thumbnail of thumbnails) { await this.imagesService.remove(thumbnail); }
+      for (const thumbnail of thumbnails) {
+        await this.imagesService.remove(thumbnail);
+      }
       throw new InternalServerErrorException();
-
     } finally {
       await runner.release();
     }

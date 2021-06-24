@@ -45,17 +45,17 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get(':id/products')
-  @UseInterceptors(TransformInterceptor)
-  @ApiTags('상품')
-  @ApiOperation({ summary: '분류별 상품 조회' })
-  @ApiOkResponse({ description: 'Success', type: GetProductsResponse })
-  findByCategory(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<ProductEntity[]> {
-    const getProductsFilterDto: GetProductsFilterDto = { category_id: id };
-    return this.productsService.find(getProductsFilterDto);
-  }
+  // @Get(':id/products')
+  // @UseInterceptors(TransformInterceptor)
+  // @ApiTags('상품')
+  // @ApiOperation({ summary: '분류별 상품 조회' })
+  // @ApiOkResponse({ description: 'Success', type: GetProductsResponse })
+  // findByCategory(
+  //   @Param('id', ParseIntPipe) id: number,
+  // ): Promise<ProductEntity[]> {
+  //   const getProductsFilterDto: GetProductsFilterDto = { category_id: id };
+  //   return this.productsService.find(getProductsFilterDto);
+  // }
 
   @Post()
   //파일이있는 HTML 양식의 필드 이름을 제공하는 문자열
@@ -70,9 +70,6 @@ export class CategoriesController {
     @Body() createCategoryDto: CreateCategoryDto,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<AffectedRows> {
-    console.log(1, createCategoryDto);
-    console.log(2, file);
-
     return this.categoriesService.create(file, createCategoryDto);
   }
 }

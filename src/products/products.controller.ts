@@ -6,7 +6,6 @@ import {
   ParseIntPipe,
   Post,
   UploadedFiles,
-  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
@@ -26,9 +25,6 @@ import { AffectedRows } from '../common/interfaces/custom.interface';
 import { GetProductsResponse } from './responses/get-products.response';
 import { ProductEntity } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from '@nestjs/passport';
-import { GetStore } from 'src/stores/get-store.decorator';
-import { StoreEntity } from 'src/stores/entities/store.entity';
 
 @Controller('products')
 export class ProductsController {
@@ -43,17 +39,16 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
-  @Get(':id')
-  @UseInterceptors(TransformInterceptor)
-  @ApiTags('상품')
-  @ApiOperation({ summary: '상품 정보 조회' })
-  @ApiOkResponse({ description: 'Success', type: GetProductsResponse })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
-    return this.productsService.findOne(id);
-  }
+  // @Get(':id')
+  // @UseInterceptors(TransformInterceptor)
+  // @ApiTags('상품')
+  // @ApiOperation({ summary: '상품 정보 조회' })
+  // @ApiOkResponse({ description: 'Success', type: GetProductsResponse })
+  // findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductEntity> {
+  //   return this.productsService.findOne(id);
+  // }
 
   @Post()
-  @UseGuards(AuthGuard())
   @UseInterceptors(FilesInterceptor('thumbnails'))
   @UseInterceptors(TransformInterceptor)
   @ApiTags('테스트')
@@ -64,8 +59,13 @@ export class ProductsController {
   create(
     @Body(ValidationPipe) dto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
-    @GetStore() store: StoreEntity,
   ): Promise<AffectedRows> {
-    return this.productsService.create(files, dto, store);
+    console.log(777,dto);
+    
+    console.log(123,files);
+    
+    return this.productsService.create(files, dto);
   }
+
+  
 }

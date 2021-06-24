@@ -1,109 +1,98 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
-import { ImagesService } from '../images/images.service';
-import { ImageEntity } from '../images/entities/image.entity';
 import { ProductEntity } from './entities/product.entity';
+import { ImageEntity } from '../images/entities/image.entity';
+import { ImagesService } from '../images/images.service';
 import { CategoriesRepository } from '../categories/categories.repository';
 import { ProductsRepository } from './products.repository';
 import { StoresRepository } from '../stores/stores.repository';
 import { CreateProductDto } from './dto/create-product.dto';
+import { GetProductsFilterDao } from './dao/get-products-filter.dao';
+import { MetaData } from '../common/models/meta.model';
 import { AffectedRows } from '../common/interfaces/custom.interface';
-import { GetProductsFilterDto } from './dto/get-products-filter.dto';
-import { StoreEntity } from 'src/stores/entities/store.entity';
+import { TagsService } from '../tags/tags.service';
+import { TagEntity } from '../tags/entities/tag.entity';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
+    private readonly imagesService: ImagesService,
+    private readonly tagsService: TagsService,
     @InjectConnection()
     private readonly connection: Connection,
-    @InjectRepository(ProductsRepository)
+    @InjectRepository(CategoriesRepository)
     private readonly categoriesRepository: CategoriesRepository,
-    private readonly imagesService: ImagesService,
+    @InjectRepository(ProductsRepository)
     private readonly productsRepository: ProductsRepository,
+    @InjectRepository(StoresRepository)
     private readonly storesRepository: StoresRepository,
   ) {}
 
-  async find(dto: GetProductsFilterDto): Promise<ProductEntity[]> {
-    const products = await this.productsRepository.find({
-      relations: ['categories', 'store', 'thumbnails'],
-      order: {
-        id: 'ASC',
-      },
-    });
-    products.forEach((product) =>
-      product.categories.sort((a, b) => a.priority - b.priority),
-    );
-    return products;
+  async find(dto: GetProductsFilterDao): Promise<MetaData> {
+    return await this.productsRepository.filter(dto);
   }
 
   async findAll(): Promise<ProductEntity[]> {
-    const products = await this.productsRepository.find({
-      relations: ['categories', 'store', 'thumbnails'],
-      order: {
-        id: 'ASC',
-      },
-    });
-    products.forEach((product) =>
-      product.categories.sort((a, b) => a.priority - b.priority),
-    );
-    return products;
+    return await this.productsRepository.getItems();
   }
 
-  async findOne(id: number): Promise<ProductEntity> {
-    const product = await this.productsRepository.findOne(id, {
-      relations: ['categories', 'store', 'thumbnails'],
-    });
-    product.categories.sort((a, b) => a.priority - b.priority);
-    return product;
-  }
+  // async findOne(id: number): Promise<ProductEntity> {
+  //   return await this.productsRepository.getItemById(id);
+  // }
 
-  async create(
-    files: Array<Express.Multer.File>,
-    dto: CreateProductDto,
-    store: StoreEntity,
-  ): Promise<AffectedRows> {
-    let thumbnails: ImageEntity[] = [];
-
+  async create(files: Array<Express.Multer.File>, dto: CreateProductDto): Promise<AffectedRows> {
     const runner = this.connection.createQueryRunner();
     await runner.connect();
     await runner.startTransaction();
+    let thumbnails: ImageEntity[] = [];
     try {
       let rows = 0;
+      if (typeof dto.tag_titles === 'string') { dto.tag_titles = [dto.tag_titles]; }
 
-      // const store = await this.storesRepository.findOne(dto.store_id);
-      const categories = await this.categoriesRepository.findByIds(
-        dto.category_ids,
-      );
-      await runner.manager.save(categories);
-
-      for (const file of files) {
-        const thumbnail = await this.imagesService.create('thumbnails', file);
-        await runner.manager.save(thumbnail);
-        thumbnails.push(thumbnail);
-      }
-
+      const { category_ids, store_id, tag_titles } = dto;
+      const store = await this.storesRepository.findOne(store_id);
+      const categories = await this.categoriesRepository.findByIds(category_ids);
+      
+      
+        for (const file of files) {
+          const thumbnail = await this.imagesService.create('thumbnails', file);
+          await runner.manager.save(thumbnail);
+          thumbnails.push(thumbnail);
+        }
+      
+      
+      let tags: TagEntity[] = [];
+      for (const tag_title of tag_titles) {
+        const tag = await this.tagsService.findOne(tag_title);
+        tags.push(tag);
+      }      
       const product = await this.productsRepository.create({
         title: dto.title,
         content: dto.content,
-        cost_price: 30000,
-        sale_price: 27000,
+        cost_price: +dto.cost_price,
+        sale_price: +dto.sale_price,
         categories,
+        tags,
         store,
-        thumbnails,
+        thumbnails
       });
+      
+      
       await runner.manager.save(product);
-
       rows = 1;
 
       await runner.commitTransaction();
       return { rows };
+
     } catch (err) {
+      console.log(err);
+      
       await runner.rollbackTransaction();
-      for (const thumbnail of thumbnails) {
-        await this.imagesService.remove(thumbnail);
-      }
+      for (const thumbnail of thumbnails) { await this.imagesService.remove(thumbnail); }
       throw new InternalServerErrorException();
+
     } finally {
       await runner.release();
     }

@@ -74,16 +74,34 @@ export class StoresService {
     }
   }
 
-  async signIn(dto: SigninStoreDto): Promise<StoreSignIn> {
+  // async signIn(dto: SigninStoreDto): Promise<StoreSignIn> {
+  //   const { name, password } = dto;
+  //   const store = await this.storesRepository.findOne({ name });
+
+  //   if (store && (await bcrypt.compare(password, store.password))) {
+  //     const payload = { name };
+  //     const access_token: string = await this.jwtService.sign(payload);
+  //     return { access_token };
+  //   } else {
+  //     throw new UnauthorizedException('Please check your login credentials');
+  //   }
+  // }
+
+  async signIn(dto: SigninStoreDto, response: Response) {
     const { name, password } = dto;
     const store = await this.storesRepository.findOne({ name });
 
     if (store && (await bcrypt.compare(password, store.password))) {
       const payload = { name };
-      const access_token: string = await this.jwtService.sign(payload);
-      return { access_token, name: store.name };
+      // const access_token: string = await this.jwtService.sign(payload);
+      // return { access_token };
+      const jwt = await this.jwtService.signAsync({ id: store.id });
     } else {
       throw new UnauthorizedException('Please check your login credentials');
     }
+  }
+
+  async findOne(condition): Promise<StoreEntity> {
+    return this.storesRepository.findOne(condition);
   }
 }

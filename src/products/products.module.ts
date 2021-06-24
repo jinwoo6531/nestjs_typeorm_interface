@@ -9,6 +9,8 @@ import { CategoriesRepository } from '../categories/categories.repository';
 import { ImagesRepository } from '../images/images.repository';
 import { ImagesService } from 'src/images/images.service';
 import { StoresModule } from 'src/stores/stores.module';
+import { TagsRepository } from '../tags/tags.repository';
+import { TagsService } from '../tags/tags.service';
 
 @Module({
   imports: [
@@ -16,10 +18,11 @@ import { StoresModule } from 'src/stores/stores.module';
     TypeOrmModule.forFeature([ImagesRepository]),
     TypeOrmModule.forFeature([ProductsRepository]),
     TypeOrmModule.forFeature([StoresRepository]),
+    TypeOrmModule.forFeature([TagsRepository]),
     AuthsModule,
     StoresModule,
   ],
   controllers: [ProductsController],
-  providers: [ProductsService, ImagesService],
+  providers: [ProductsService, ImagesService,TagsService],
 })
 export class ProductsModule {}

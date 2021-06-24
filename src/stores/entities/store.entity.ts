@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import { ProductEntity } from 'src/products/entities/product.entity';
 import {
   BaseEntity,
@@ -47,6 +48,7 @@ export class StoreEntity extends BaseEntity {
   phone: string;
 
   @Column('varchar', { name: 'password', length: 200 })
+  @Exclude()
   password: string;
 
   @Column('varchar', { name: 'salt', length: 128, select: false })

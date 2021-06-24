@@ -1,9 +1,11 @@
-export interface Meta {
+import { ApiProperty } from "@nestjs/swagger";
+
+export class Meta {
+  @ApiProperty()
   total: number;
-  page: number;
 }
 
-export interface MetaData {
+export class MetaData {
   meta: Meta;
   data: any;
 }

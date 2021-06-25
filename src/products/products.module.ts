@@ -1,3 +1,4 @@
+import { JwtModule } from '@nestjs/jwt';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoresRepository } from '../stores/stores.repository';
@@ -14,6 +15,12 @@ import { TagsService } from '../tags/tags.service';
 
 @Module({
   imports: [
+    JwtModule.register({
+      secret: 'topSecret51',
+      signOptions: {
+        expiresIn: 3600,
+      },
+    }),
     TypeOrmModule.forFeature([CategoriesRepository]),
     TypeOrmModule.forFeature([ImagesRepository]),
     TypeOrmModule.forFeature([ProductsRepository]),
@@ -23,6 +30,6 @@ import { TagsService } from '../tags/tags.service';
     StoresModule,
   ],
   controllers: [ProductsController],
-  providers: [ProductsService, ImagesService,TagsService],
+  providers: [ProductsService, ImagesService, TagsService],
 })
 export class ProductsModule {}

@@ -5,7 +5,9 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
@@ -25,6 +27,8 @@ import { AffectedRows } from '../common/interfaces/custom.interface';
 import { GetProductsResponse } from './responses/get-products.response';
 import { ProductEntity } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { GetProductsFilterDto } from './dto/get-products-filter.dto';
+import { StoresGuard } from 'src/stores/stores.guard';
 
 @Controller('products')
 export class ProductsController {
@@ -32,11 +36,16 @@ export class ProductsController {
 
   @Get()
   @UseInterceptors(TransformInterceptor)
+  @UseGuards(StoresGuard)
   @ApiTags('상품')
   @ApiOperation({ summary: '상품 목록 조회' })
   @ApiOkResponse({ description: 'Success', type: GetProductsResponse })
-  findAll(): Promise<ProductEntity[]> {
-    return this.productsService.findAll();
+  findAll(
+    @Query(ValidationPipe) dto: GetProductsFilterDto,
+  ): Promise<ProductEntity[]> {
+    console.log(dto);
+
+    return this.productsService.findAll(dto);
   }
 
   // @Get(':id')
@@ -60,12 +69,6 @@ export class ProductsController {
     @Body(ValidationPipe) dto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ): Promise<AffectedRows> {
-    console.log(777,dto);
-    
-    console.log(123,files);
-    
     return this.productsService.create(files, dto);
   }
-
-  
 }

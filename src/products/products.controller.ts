@@ -1,3 +1,4 @@
+import { ProductEntity } from 'src/products/entities/product.entity';
 import {
   Body,
   Controller,
@@ -25,7 +26,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { AffectedRowsResponse } from '../common/responses/success.response';
 import { AffectedRows } from '../common/interfaces/custom.interface';
 import { GetProductsResponse } from './responses/get-products.response';
-import { ProductEntity } from './entities/product.entity';
+
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { GetProductsFilterDto } from './dto/get-products-filter.dto';
 import { StoresGuard } from 'src/stores/stores.guard';

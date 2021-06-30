@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 export class StoresGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
 
+  //jwt
   canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     try {
